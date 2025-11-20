@@ -1,4 +1,4 @@
-import { OnInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { OnInit, ChangeDetectorRef, Component, OnDestroy, isDevMode } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { UsageReport } from 'github-usage-report/src/types';
 import { Observable, Subscription, debounceTime, map, startWith } from 'rxjs';
@@ -6,6 +6,7 @@ import { CustomUsageReportLine, UsageReportService } from 'src/app/usage-report.
 import { DialogBillingNavigateComponent } from './dialog-billing-navigate';
 import { MatDialog } from '@angular/material/dialog';
 import { ModelUsageReport } from 'github-usage-report';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-usage',
@@ -42,10 +43,16 @@ export class UsageComponent implements OnInit, OnDestroy {
     private usageReportService: UsageReportService,
     public dialog: MatDialog,
     private cdr: ChangeDetectorRef,
+    private http: HttpClient,
   ) {
   }
 
   ngOnInit() {
+    // Auto-load test data in development mode
+    if (isDevMode()) {
+      this.loadTestData();
+    }
+
     this.subscriptions.push(
       this.range.valueChanges.pipe(debounceTime(500)).subscribe(value => {
         if (value.start && value.start instanceof Date && !isNaN(value.start.getTime()) &&
@@ -192,5 +199,17 @@ export class UsageComponent implements OnInit, OnDestroy {
     document.body.appendChild(a);
     a.click();
     (a as any).parentNode.removeChild(a);
+  }
+
+  private async loadTestData() {
+    try {
+      const response = await this.http.get('assets/github-usage-report.csv', { responseType: 'text' }).toPromise();
+      if (response) {
+        console.log('Auto-loading test data in development mode...');
+        await this.onFileText(response, 'metered');
+      }
+    } catch (error) {
+      console.warn('Could not auto-load test data:', error);
+    }
   }
 }

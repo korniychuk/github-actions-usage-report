@@ -79,6 +79,7 @@ export class UsageReportService {
     "actions_windows_8_core": 'Windows 8',
     "actions_windows_8_core_arm": 'Windows 8 (ARM)',
     "actions_storage": 'Actions Storage',
+    "actions_custom_image_storage": 'Custom Image Storage',
     "actions_unknown": 'Actions Unknown',
     "copilot_enterprise": 'Copilot Enterprise',
     "copilot_for_business": 'Copilot Business',
