@@ -198,7 +198,7 @@ export class DurationPipe implements PipeTransform {
   transform(minutes: number): string {
     const seconds = minutes * 60;
     if (seconds < 60) {
-      return `${seconds} sec`;
+      return `${seconds.toFixed(2)} sec`;
     } else if (seconds < 3600) {
       return `${Math.round(seconds / 60)} min`;
     } else {
