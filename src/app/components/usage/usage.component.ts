@@ -57,10 +57,22 @@ export class UsageComponent implements OnInit, OnDestroy {
       this.range.valueChanges.pipe(debounceTime(500)).subscribe(value => {
         if (value.start && value.start instanceof Date && !isNaN(value.start.getTime()) &&
           value.end && value.end instanceof Date && !isNaN(value.end.getTime())) {
-          this.usageReportService.applyFilter({
-            startDate: value.start,
-            endDate: value.end,
-          });
+          // Validate date range: if end is before start, swap them
+          if (value.end < value.start) {
+            const temp = value.start;
+            this.range.controls.start.setValue(value.end, { emitEvent: false });
+            this.range.controls.end.setValue(temp, { emitEvent: false });
+            // Update the filter with swapped values
+            this.usageReportService.applyFilter({
+              startDate: value.end,
+              endDate: temp,
+            });
+          } else {
+            this.usageReportService.applyFilter({
+              startDate: value.start,
+              endDate: value.end,
+            });
+          }
         }
       })
     );
@@ -75,6 +87,7 @@ export class UsageComponent implements OnInit, OnDestroy {
     );
     this._filteredWorkflows = this.workflowControl.valueChanges.pipe(
       startWith(''),
+      debounceTime(300),
       map(value => this._filterWorkflows(value || '')),
     );
 
@@ -112,28 +125,40 @@ export class UsageComponent implements OnInit, OnDestroy {
             resolve(''); 
         });
       };
-    const usage = await (type === 'metered' ? this.usageReportService.setUsageReportData(fileText, progressFunction) : type === 'copilot_premium_requests' ? this.usageReportService.setUsageReportCopilotPremiumRequests(fileText, progressFunction) : null);
-    if (!usage) {
-      this.status = 'Error parsing file. Please check the file format.';
-      return;
+    try {
+      const usage = await (type === 'metered' ? this.usageReportService.setUsageReportData(fileText, progressFunction) : type === 'copilot_premium_requests' ? this.usageReportService.setUsageReportCopilotPremiumRequests(fileText, progressFunction) : null);
+      if (!usage) {
+        this.status = 'Error: Unable to parse file. Please ensure it\'s a valid GitHub usage report CSV.';
+        this.progress = null;
+        return;
+      }
+      if (!usage.lines || usage.lines.length === 0) {
+        this.status = 'Error: The file contains no usage data. Please check the file format.';
+        this.progress = null;
+        return;
+      }
+      const firstLine = usage.lines[0];
+      const lastLine = usage.lines[usage.lines.length - 1];
+      this.minDate = new Date(firstLine && 'date' in firstLine ? firstLine.date : new Date());
+      this.maxDate = new Date(lastLine && 'date' in lastLine ? lastLine.date : new Date());
+      // make the date 00:00:00
+      this.minDate.setHours(0, 0, 0, 0);
+      this.maxDate.setHours(0, 0, 0, 0);
+      this.range.controls.start.setValue(this.minDate, { emitEvent: false });
+      this.range.controls.end.setValue(this.maxDate, { emitEvent: false });
+      if (type === 'copilot_premium_requests') {
+        this.usageCopilotPremiumRequests = usage as ModelUsageReport;
+      } else {
+        this.usage = usage as UsageReport;
+      }
+      this.status = 'Usage Report';
+      this.progress = null;
+      this.cdr.detectChanges();
+    } catch (error: any) {
+      this.status = `Error parsing file: ${error.message || 'Invalid format or corrupted data'}. Please ensure you\'re uploading a valid GitHub usage report CSV.`;
+      this.progress = null;
+      console.error('Parse error:', error);
     }
-    const firstLine = usage.lines[0];
-    const lastLine = usage.lines[usage.lines.length - 1];
-    this.minDate = new Date(firstLine && 'date' in firstLine ? firstLine.date : new Date());
-    this.maxDate = new Date(lastLine && 'date' in lastLine ? lastLine.date : new Date());
-    // make the date 00:00:00
-    this.minDate.setHours(0, 0, 0, 0);
-    this.maxDate.setHours(0, 0, 0, 0);
-    this.range.controls.start.setValue(this.minDate, { emitEvent: false });
-    this.range.controls.end.setValue(this.maxDate, { emitEvent: false });
-    if (type === 'copilot_premium_requests') {
-      this.usageCopilotPremiumRequests = usage as ModelUsageReport;
-    } else {
-      this.usage = usage as UsageReport;
-    }
-    this.status = 'Usage Report';
-    this.progress = null;
-    this.cdr.detectChanges();
   }
 
   private _filterWorkflows(workflow: string): string[] {

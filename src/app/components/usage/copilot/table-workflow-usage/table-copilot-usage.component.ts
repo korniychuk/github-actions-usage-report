@@ -159,8 +159,8 @@ export class TableCopilotUsageComponent implements OnChanges, AfterViewInit {
           header: 'Total seats',
           cell: (workflowItem: CopilotUsageItem) => decimalPipe.transform(Math.floor(workflowItem.total)),
           footer: () => {
-            if (!this.data) return '';
-            return decimalPipe.transform(this.data.reduce((acc, line) => acc += line.value, 0));
+            if (!this.dataSource?.data) return '';
+            return decimalPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.total, 0));
           }
         });
       } else if (this.currency === 'cost') {
@@ -169,8 +169,8 @@ export class TableCopilotUsageComponent implements OnChanges, AfterViewInit {
           header: 'Total cost',
           cell: (workflowItem: CopilotUsageItem) => currencyPipe.transform(workflowItem.cost),
           footer: () => {
-            if (!this.data) return '';
-            return currencyPipe.transform(this.data.reduce((acc, line) => acc += line.value, 0));
+            if (!this.dataSource?.data) return '';
+            return currencyPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.cost, 0));
           }
         });
       }

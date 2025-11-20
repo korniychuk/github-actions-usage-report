@@ -161,14 +161,14 @@ export class TableCodespacesUsageComponent implements OnChanges, AfterViewInit {
         columnDef: 'total',
         header: 'Total seats',
         cell: (workflowItem: CodespacesUsageItem) => decimalPipe.transform(Math.floor(workflowItem.total)),
-        footer: () => decimalPipe.transform(this.data.reduce((acc, line) => acc += line.value, 0))
+        footer: () => decimalPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.total, 0))
       });
     } else if (this.currency === 'cost') {
       columns.push({
         columnDef: 'cost',
         header: 'Total cost',
         cell: (workflowItem: CodespacesUsageItem) => currencyPipe.transform(workflowItem.cost),
-        footer: () => currencyPipe.transform(this.data.reduce((acc, line) => acc += line.value, 0))
+        footer: () => currencyPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.cost, 0))
       });
     }
     this.columns = columns;

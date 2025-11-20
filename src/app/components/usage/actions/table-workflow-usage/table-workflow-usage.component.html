@@ -12,7 +12,7 @@
 
     <mat-form-field [class.hide]="dataSource.data.length <= 1">
       <mat-label>Filter</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ex. .github/workflows/build.yml	" #input>
+      <input matInput (keyup)="applyFilter($event)" [placeholder]="tableType === 'workflow' ? 'Ex. build.yml' : tableType === 'repo' ? 'Ex. my-repo' : tableType === 'sku' ? 'Ex. Ubuntu' : 'Ex. username'" #input>
     </mat-form-field>
     <!-- <div>
       <mat-button-toggle-group name="toggleChart" aria-label="Toggle Chart" [value]="tableType"

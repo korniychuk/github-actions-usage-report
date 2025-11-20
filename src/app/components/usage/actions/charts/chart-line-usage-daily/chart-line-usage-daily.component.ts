@@ -76,7 +76,7 @@ export class ChartLineUsageDailyComponent implements OnChanges {
         } else if (this.timeType === 'daily') {
           timeKey = line.date.toISOString().split('T')[0];
         } else if (this.timeType === 'weekly') {
-          timeKey = this.getWeekOfYear(line.date).toString();
+          timeKey = this.getWeekOfYear(line.date);
         } else if (this.timeType === 'monthly') {
           // get key in format YYYY-MM
           timeKey = line.date.toISOString().split('T')[0].slice(0, 7);
@@ -143,7 +143,7 @@ export class ChartLineUsageDailyComponent implements OnChanges {
         data = perDay.reduce((acc, curr, index) => {
           acc.push([
             curr.date.getTime(),
-            perDay.slice(index > this.rollingDays ? index - this.rollingDays : 0, index).reduce((acc, curr) => acc + curr.total, 0)
+            perDay.slice(index >= this.rollingDays ? index - this.rollingDays + 1 : 0, index + 1).reduce((acc, curr) => acc + curr.total, 0)
           ]);
           return acc;
         }, [] as [number, number][]);
@@ -190,6 +190,6 @@ export class ChartLineUsageDailyComponent implements OnChanges {
     d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return weekNo;
+    return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
   }
 }

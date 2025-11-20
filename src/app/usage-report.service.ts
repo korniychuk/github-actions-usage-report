@@ -133,14 +133,12 @@ export class UsageReportService {
   }
 
   setValueType(value: 'minutes' | 'cost') {
-    this.usageReport.lines.forEach(line => {
-      if (value === 'minutes') {
-        line.value = (line.quantity) || 0;
-      } else {
-        line.value = (line.quantity * line.pricePerUnit) || 0;
-      }
-    });
-    this.usageReportFiltered.next(this.usageReport.lines);
+    // Don't mutate original data - calculate on-the-fly
+    const lines = this.usageReport.lines.map(line => ({
+      ...line,
+      value: value === 'minutes' ? (line.quantity || 0) : (line.quantity * line.pricePerUnit || 0)
+    }));
+    this.usageReportFiltered.next(lines);
     this.valueType.next(value);
   }
 
@@ -209,7 +207,13 @@ export class UsageReportService {
         return line.date >= this.filters.startDate && line.date <= this.filters.endDate;
       });
     }
-    this.usageReportFiltered.next(filtered);
+    // Apply value type transformation
+    const valueType = this.valueType.value;
+    const transformedFiltered = filtered.map(line => ({
+      ...line,
+      value: valueType === 'minutes' ? (line.quantity || 0) : (line.quantity * line.pricePerUnit || 0)
+    }));
+    this.usageReportFiltered.next(transformedFiltered);
   }
 
   getUsageReportFiltered(): Observable<CustomUsageReportLine[]> {

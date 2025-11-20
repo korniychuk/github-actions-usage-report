@@ -97,10 +97,10 @@ export class TableWorkflowUsageComponent implements OnChanges, AfterViewInit {
           const column: UsageColumn = {
             columnDef: month,
             header: month,
-            cell: (workflowItem: any) => this.currency === 'cost' ? currencyPipe.transform(workflowItem[month]) : decimalPipe.transform(workflowItem[month]),
+            cell: (workflowItem: any) => this.currency === 'cost' ? currencyPipe.transform(workflowItem[month]) : decimalPipe.transform(Math.round(workflowItem[month]), '1.0-0'),
             footer: () => {
               const total = this.dataSource.data.reduce((acc, item) => acc + (item as any)[month], 0);
-              return this.currency === 'cost' ? currencyPipe.transform(total) : decimalPipe.transform(total);
+              return this.currency === 'cost' ? currencyPipe.transform(total) : decimalPipe.transform(Math.round(total), '1.0-0');
             },
             date: new Date(line.date),
           };
@@ -151,7 +151,7 @@ export class TableWorkflowUsageComponent implements OnChanges, AfterViewInit {
         if (!(item as any)[month]) {
           (item as any)[month] = 0;
         }
-        const lastMonth: string = new Date(new Date().getFullYear(), this.usageReportService.monthsOrder.indexOf(month) - 1).toLocaleString('default', { month: 'short' });
+        const lastMonth: string = new Date(column.date!.getFullYear(), column.date!.getMonth() - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
         const lastMonthValue = (item as any)[lastMonth];
         const percentageChanged = this.calculatePercentageChange(lastMonthValue, (item as any)[month]);
         (item as any)[month + 'PercentChange'] = percentageChanged;
@@ -256,24 +256,32 @@ export class TableWorkflowUsageComponent implements OnChanges, AfterViewInit {
         columnDef: 'avgTime',
         header: 'Avg time',
         cell: (workflowItem: WorkflowUsageItem) => `${durationPipe.transform(workflowItem.avgTime)}`,
-        footer: () => durationPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.avgTime, 0) / this.dataSource.data.length)
+        footer: () => {
+          const totalTime = this.dataSource.data.reduce((acc, line) => acc + line.total, 0);
+          const totalRuns = this.dataSource.data.reduce((acc, line) => acc + line.runs, 0);
+          return durationPipe.transform(totalRuns > 0 ? totalTime / totalRuns : 0);
+        }
       }, {
         columnDef: 'total',
         header: 'Total',
         cell: (workflowItem: WorkflowUsageItem) => decimalPipe.transform(Math.floor(workflowItem.total)),
-        footer: () => decimalPipe.transform(this.data.reduce((acc, line) => acc += line.value, 0))
+        footer: () => decimalPipe.transform(Math.round(this.dataSource.data.reduce((acc, line) => acc += line.total, 0)), '1.0-0')
       });
     } else if (this.currency === 'cost') {
       columns.push({
         columnDef: 'avgCost',
         header: 'Avg run',
         cell: (workflowItem: WorkflowUsageItem) => currencyPipe.transform(workflowItem.avgCost),
-        footer: () => currencyPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.cost, 0) / this.dataSource.data.length)
+        footer: () => {
+          const totalCost = this.dataSource.data.reduce((acc, line) => acc + line.cost, 0);
+          const totalRuns = this.dataSource.data.reduce((acc, line) => acc + line.runs, 0);
+          return currencyPipe.transform(totalRuns > 0 ? totalCost / totalRuns : 0);
+        }
       }, {
         columnDef: 'cost',
         header: 'Total',
         cell: (workflowItem: WorkflowUsageItem) => currencyPipe.transform(workflowItem.cost),
-        footer: () => currencyPipe.transform(this.data.reduce((acc, line) => acc += line.value, 0))
+        footer: () => currencyPipe.transform(this.dataSource.data.reduce((acc, line) => acc += line.cost, 0))
       });
     }
     columns[0].footer = () => 'Total';
