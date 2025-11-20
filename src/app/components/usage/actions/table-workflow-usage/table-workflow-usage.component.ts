@@ -76,7 +76,7 @@ export class TableWorkflowUsageComponent implements OnChanges, AfterViewInit {
     usageItems = this.data.reduce((acc, line) => {
       const item = acc.find(a => {
         if (this.tableType === 'workflow') {
-          return a.workflow === (line.workflowName || 'Unknown Workflow')
+          return a.workflow === (line.workflowName || line.workflowPath || 'Unknown Workflow')
         } else if (this.tableType === 'repo') {
           return a.repo === line.repositoryName;
         } else if (this.tableType === 'sku') {
@@ -129,7 +129,7 @@ export class TableWorkflowUsageComponent implements OnChanges, AfterViewInit {
         item.runs++;
       } else {
         acc.push({
-          workflow: line.workflowName || 'Unknown Workflow',
+          workflow: line.workflowName || line.workflowPath || 'Unknown Workflow',
           repo: line.repositoryName,
           total: line.quantity,
           cost: line.quantity * line.pricePerUnit,

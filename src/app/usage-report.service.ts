@@ -171,8 +171,9 @@ export class UsageReportService {
       if (!this.repositories.includes(line.repositoryName)) {
         this.repositories.push(line.repositoryName);
       }
-      if (line.workflowName && !this.workflows.includes(line.workflowName)) {
-        this.workflows.push(line.workflowName);
+      const workflow = line.workflowName || line.workflowPath;
+      if (workflow && !this.workflows.includes(workflow)) {
+        this.workflows.push(workflow);
       }
       if (!this.skus.includes(line.sku)) {
         this.skus.push(line.sku);
@@ -201,7 +202,7 @@ export class UsageReportService {
       filtered = filtered.filter(line => line.sku === this.filters.sku);
     }
     if (this.filters.workflow) {
-      filtered = filtered.filter(line => line.workflowName && line.workflowName === this.filters.workflow);
+      filtered = filtered.filter(line => (line.workflowName || line.workflowPath) === this.filters.workflow);
     }
     if (this.filters.startDate && this.filters.endDate) {
       filtered = filtered.filter(line => {
@@ -225,8 +226,8 @@ export class UsageReportService {
   getWorkflowsFiltered(): Observable<string[]> {
     return this.getUsageFilteredByProduct('actions').pipe(
       map(lines => lines
-        .map(line => line.workflowName)
-        .filter((workflow): workflow is string => workflow !== undefined)
+        .map(line => line.workflowName || line.workflowPath)
+        .filter((workflow): workflow is string => workflow !== undefined && workflow !== '')
         .filter((workflow, index, self) => self.indexOf(workflow) === index)
       ),
     )

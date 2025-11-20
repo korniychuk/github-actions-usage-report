@@ -72,7 +72,7 @@ export class ChartLineUsageDailyComponent implements OnChanges {
         let name = 'Total';
         let timeKey = 'total';
         if (this.timeType === 'run') {
-          timeKey = `${line.workflowName || 'Unknown'}${line.date}${index}`;
+          timeKey = `${line.workflowName || line.workflowPath || 'Unknown'}${line.date}${index}`;
         } else if (this.timeType === 'daily') {
           timeKey = line.date.toISOString().split('T')[0];
         } else if (this.timeType === 'weekly') {
@@ -93,7 +93,7 @@ export class ChartLineUsageDailyComponent implements OnChanges {
         } else if (this.chartType === 'repo') {
           name = line.repositoryName;
         } else if (this.chartType === 'workflow') {
-          name = line.workflowName || 'Unknown Workflow';
+          name = line.workflowName || line.workflowPath || 'Unknown Workflow';
         } else if (this.chartType === 'total') {
           name = 'total';
         }
