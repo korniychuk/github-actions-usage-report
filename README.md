@@ -1,27 +1,86 @@
-# [GitHub Usage Report Viewer](https://austenstone.github.io/github-actions-usage-report/)
+# [GitHub Usage Report Viewer](https://korniychuk.github.io/github-actions-usage-report/)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.2.6.
+A web application to visualize GitHub Usage Reports. Supports both the legacy detailed format and the new summarized format.
 
-## Development server
+[![Live Demo](https://img.shields.io/badge/demo-live-green)](https://korniychuk.github.io/github-actions-usage-report/)
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Features
 
-## Code scaffolding
+- 📊 Visualize GitHub Actions, Codespaces, Copilot, and Shared Storage usage
+- 📈 Interactive charts (daily usage, pie charts by user/SKU, top workflows)
+- 📋 Detailed tables with grouping by Runner, Repository, Workflow, or User
+- 🔒 100% client-side processing - your data never leaves your browser
+- 🌙 Dark/Light theme support
+- 📥 Export reports as HTML
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Supported CSV Formats
 
-## Build
+The tool supports multiple GitHub usage report formats:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+| Format | Columns | Features |
+|--------|---------|----------|
+| Legacy (15 cols) | `usage_at`, `workflow_name`, `workflow_path`, `username` | Full workflow & user details |
+| Legacy (14 cols) | `date`, `workflow_path`, `username` | Workflow path & user details |
+| Summarized (12 cols) | `date`, `organization`, `repository` | Aggregated data only |
 
-## Running unit tests
+> **Note:** The new summarized format from GitHub doesn't include workflow or username data. Some grouping options will be disabled when using this format.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Usage
 
-## Running end-to-end tests
+1. Visit [https://korniychuk.github.io/github-actions-usage-report/](https://korniychuk.github.io/github-actions-usage-report/)
+2. Download your usage report from GitHub:
+   - Go to your [Organization Billing](https://github.com/organizations/YOUR_ORG/settings/billing/summary) or [Enterprise Billing](https://github.com/enterprises/YOUR_ENTERPRISE/settings/billing)
+   - Download the usage report CSV
+3. Upload the CSV file to the viewer
+4. Explore your usage data!
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Development
 
-## Further help
+### Prerequisites
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- Node.js 18+
+- npm
+
+### Setup
+
+```bash
+npm install
+npm start
+```
+
+Navigate to `http://localhost:4200/`. The app will automatically reload on file changes.
+
+### Build
+
+```bash
+npm run build
+```
+
+Build artifacts are stored in the `dist/` directory.
+
+### Running Tests
+
+```bash
+npm test
+```
+
+## Deployment
+
+The app automatically deploys to GitHub Pages on push to `main` branch via GitHub Actions.
+
+To deploy your own fork:
+1. Fork this repository
+2. Enable GitHub Pages in repository Settings → Pages → Source: "GitHub Actions"
+3. Push to `main` branch
+
+## Credits
+
+This project is a fork of the original [GitHub Actions Usage Report Viewer](https://austenstone.github.io/github-actions-usage-report/) created by [@austenstone](https://github.com/austenstone). 
+
+Thanks to the original author for creating this awesome tool! 🙏
+
+**Original Repository:** [austenstone/github-actions-usage-report](https://github.com/austenstone/github-actions-usage-report)
+
+## License
+
+MIT
