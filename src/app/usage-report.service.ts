@@ -63,20 +63,23 @@ type CsvFormat = 'legacy-15' | 'legacy-14' | 'summarized-12';
  *                  gross_amount, discount_amount, net_amount, organization, repository, cost_center_name
  */
 function detectCsvFormat(headerLine: string): CsvFormat {
-  const headers = headerLine.toLowerCase();
-  const columnCount = headerLine.split(',').length;
+  // Parse headers properly by removing quotes and splitting
+  const headerColumns = headerLine.split(',').map(h => h.replace(/^"|"$/g, '').toLowerCase().trim());
+  const columnCount = headerColumns.length;
   
-  // Check for legacy format indicators
-  if (headers.includes('usage_at') || headers.includes('workflow_name')) {
+  console.log(`Header columns (${columnCount}):`, headerColumns);
+  
+  // Check for legacy-15 format (has usage_at or workflow_name)
+  if (headerColumns.includes('usage_at') || headerColumns.includes('workflow_name')) {
     return 'legacy-15';
   }
   
-  // Check column count and presence of username/workflow_path
-  if (columnCount >= 14 && (headers.includes('username') || headers.includes('workflow_path'))) {
+  // Check for legacy-14 format (has username and/or workflow_path columns)
+  if (headerColumns.includes('username') || headerColumns.includes('workflow_path')) {
     return 'legacy-14';
   }
   
-  // New summarized format - 12 columns, no username or workflow data
+  // New summarized format - no username or workflow data
   return 'summarized-12';
 }
 
@@ -182,21 +185,21 @@ async function readGithubUsageReport(data: string): Promise<UsageReport> {
         let parsedLine: UsageReportLine;
         
         if (formatType === 'legacy-15') {
-          if (csv.length !== 15) {
-            console.warn(`Skipping line ${index + 1}: expected 15 columns for legacy-15 format, got ${csv.length}`);
+          if (csv.length < 15) {
+            console.warn(`Skipping line ${index + 1}: expected at least 15 columns for legacy-15 format, got ${csv.length}`);
             return;
           }
           parsedLine = parseLegacy15Line(csv);
         } else if (formatType === 'legacy-14') {
-          if (csv.length !== 14) {
-            console.warn(`Skipping line ${index + 1}: expected 14 columns for legacy-14 format, got ${csv.length}`);
+          if (csv.length < 14) {
+            console.warn(`Skipping line ${index + 1}: expected at least 14 columns for legacy-14 format, got ${csv.length}`);
             return;
           }
           parsedLine = parseLegacy14Line(csv);
         } else {
           // New summarized format: 12 columns
-          if (csv.length !== 12) {
-            console.warn(`Skipping line ${index + 1}: expected 12 columns for summarized format, got ${csv.length}`);
+          if (csv.length < 12) {
+            console.warn(`Skipping line ${index + 1}: expected at least 12 columns for summarized format, got ${csv.length}`);
             return;
           }
           parsedLine = parseSummarizedLine(csv);

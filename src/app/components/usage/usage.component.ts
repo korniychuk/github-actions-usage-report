@@ -241,5 +241,9 @@ export class UsageComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.warn('Could not auto-load test data:', error);
     }
+    // Reset status if auto-load failed (don't show error to user for dev auto-load)
+    if (this.status.startsWith('Error')) {
+      this.status = 'Usage Report';
+    }
   }
 }
